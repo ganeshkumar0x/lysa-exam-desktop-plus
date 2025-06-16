@@ -42,19 +42,17 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     if (!canvas || !container) return;
 
     const rect = container.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
     
-    // Set canvas size to match container
-    canvas.width = rect.width * dpr;
-    canvas.height = 400 * dpr;
+    // Set canvas size to match container exactly
+    canvas.width = rect.width;
+    canvas.height = 400;
     
-    // Scale canvas back down using CSS
+    // Ensure canvas style matches exact dimensions
     canvas.style.width = rect.width + 'px';
     canvas.style.height = '400px';
     
     const ctx = canvas.getContext('2d');
     if (ctx) {
-      ctx.scale(dpr, dpr);
       ctx.fillStyle = 'white';
       ctx.fillRect(0, 0, rect.width, 400);
     }
@@ -68,9 +66,9 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     if (!ctx) return;
 
     const rect = canvas.getBoundingClientRect();
-    ctx.clearRect(0, 0, rect.width, 400);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, rect.width, 400);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     strokes.forEach(stroke => {
       if (stroke.points.length > 1) {
@@ -89,45 +87,39 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     });
   };
 
-  const getMousePos = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const getCoordinates = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
 
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
+    let clientX, clientY;
+
+    if ('touches' in e) {
+      if (e.touches.length === 0) return { x: 0, y: 0 };
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
     
     return {
-      x: (e.clientX - rect.left) * scaleX / (window.devicePixelRatio || 1),
-      y: (e.clientY - rect.top) * scaleY / (window.devicePixelRatio || 1)
-    };
-  };
-
-  const getTouchPos = (e: React.TouchEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas || !e.touches.length) return { x: 0, y: 0 };
-
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    
-    return {
-      x: (e.touches[0].clientX - rect.left) * scaleX / (window.devicePixelRatio || 1),
-      y: (e.touches[0].clientY - rect.top) * scaleY / (window.devicePixelRatio || 1)
+      x: clientX - rect.left,
+      y: clientY - rect.top
     };
   };
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     setIsDrawing(true);
-    const pos = getMousePos(e);
+    const pos = getCoordinates(e);
     setCurrentStroke([pos]);
   };
 
   const startDrawingTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     setIsDrawing(true);
-    const pos = getTouchPos(e);
+    const pos = getCoordinates(e);
     setCurrentStroke([pos]);
   };
 
@@ -135,7 +127,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     e.preventDefault();
     if (!isDrawing) return;
 
-    const pos = getMousePos(e);
+    const pos = getCoordinates(e);
     setCurrentStroke(prev => [...prev, pos]);
 
     const canvas = canvasRef.current;
@@ -160,7 +152,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     e.preventDefault();
     if (!isDrawing) return;
 
-    const pos = getTouchPos(e);
+    const pos = getCoordinates(e);
     setCurrentStroke(prev => [...prev, pos]);
 
     const canvas = canvasRef.current;
@@ -213,9 +205,9 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   const colors = ['#000000', '#ff0000', '#0000ff', '#00ff00', '#ffff00', '#800080', '#ffa500', '#ff69b4'];
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full w-full">
       {/* Drawing Tools */}
-      <div className="flex flex-wrap items-center gap-4 p-4 bg-gray-50 rounded-lg mb-4">
+      <div className="flex flex-wrap items-center gap-4 p-4 bg-gray-50 rounded-lg mb-4 shrink-0">
         <div className="flex flex-wrap gap-2">
           <span className="text-sm font-medium">Colors:</span>
           {colors.map(color => (
@@ -266,12 +258,12 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       {/* Canvas Container */}
       <div 
         ref={containerRef}
-        className="flex-1 border-2 border-gray-300 rounded-lg overflow-hidden bg-white shadow-inner"
-        style={{ minHeight: '400px' }}
+        className="flex-1 border-2 border-gray-300 rounded-lg overflow-hidden bg-white shadow-inner relative"
+        style={{ minHeight: '400px', maxHeight: '400px' }}
       >
         <canvas
           ref={canvasRef}
-          className="w-full h-full cursor-crosshair touch-none"
+          className="block cursor-crosshair touch-none"
           onMouseDown={startDrawing}
           onMouseMove={draw}
           onMouseUp={stopDrawing}
@@ -279,11 +271,17 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
           onTouchStart={startDrawingTouch}
           onTouchMove={drawTouch}
           onTouchEnd={stopDrawing}
-          style={{ touchAction: 'none' }}
+          style={{ 
+            touchAction: 'none',
+            display: 'block',
+            position: 'absolute',
+            top: 0,
+            left: 0
+          }}
         />
       </div>
 
-      <div className="mt-2 text-xs text-gray-500 text-center">
+      <div className="mt-2 text-xs text-gray-500 text-center shrink-0">
         Click and drag to draw • Touch and drag on mobile devices
       </div>
     </div>
