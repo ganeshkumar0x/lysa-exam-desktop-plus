@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Question } from '../../types/exam';
-import DrawingCanvas from './DrawingCanvas';
+import EnhancedDrawingCanvas from './EnhancedDrawingCanvas';
 
 interface WrittenQuestionProps {
   question: Question;
@@ -61,7 +61,7 @@ const WrittenQuestion: React.FC<WrittenQuestionProps> = ({
           </TabsContent>
 
           <TabsContent value="draw" className="flex-1 mt-4">
-            <DrawingCanvas
+            <EnhancedDrawingCanvas
               onDataChange={setDrawingData}
               initialData={drawingData}
             />

@@ -20,6 +20,7 @@ export interface Stroke {
   points: Point[];
   color: string;
   width: number;
+  type?: 'pen' | 'line' | 'rectangle' | 'circle';
 }
 
 export interface Point {

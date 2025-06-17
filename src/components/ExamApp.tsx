@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import NavigationPanel from './exam/NavigationPanel';
 import QuestionContent from './exam/QuestionContent';
+import CompactTimer from './exam/CompactTimer';
 import { Question, UserAnswer, CompletionStatus } from '../types/exam';
 import { loadSampleQuestions } from '../utils/examUtils';
 
@@ -56,41 +57,49 @@ const ExamApp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Navigation Panel */}
-      {navPanelVisible && (
-        <div className="w-80 border-r border-gray-200">
-          <NavigationPanel
-            questions={questions}
-            currentQuestionIndex={currentQuestionIndex}
-            completionStatus={completionStatus}
-            remainingTime={remainingTime}
-            onQuestionSelect={setCurrentQuestionIndex}
-            onSubmitExam={handleSubmitExam}
-          />
-        </div>
-      )}
-
-      {/* Toggle Button */}
-      <button
-        onClick={() => setNavPanelVisible(!navPanelVisible)}
-        className="fixed left-80 top-12 z-10 bg-blue-600 text-white px-2 py-4 rounded-r-md shadow-lg hover:bg-blue-700 transition-colors"
-        style={{ left: navPanelVisible ? '320px' : '0px' }}
-      >
-        {navPanelVisible ? '◀' : '▶'}
-      </button>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Top Bar with Timer */}
+      <div className="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center">
+        <h1 className="text-xl font-bold text-gray-800">Digital Exam</h1>
+        <CompactTimer remainingTime={remainingTime} />
+      </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-6">
-        <Card className="h-full bg-white shadow-lg rounded-lg">
-          <QuestionContent
-            question={questions[currentQuestionIndex]}
-            questionIndex={currentQuestionIndex}
-            userAnswer={userAnswers[currentQuestionIndex]}
-            onSaveAnswer={saveAnswer}
-            onNextQuestion={goToNextQuestion}
-          />
-        </Card>
+      <div className="flex flex-1">
+        {/* Navigation Panel */}
+        {navPanelVisible && (
+          <div className="w-80 border-r border-gray-200">
+            <NavigationPanel
+              questions={questions}
+              currentQuestionIndex={currentQuestionIndex}
+              completionStatus={completionStatus}
+              onQuestionSelect={setCurrentQuestionIndex}
+              onSubmitExam={handleSubmitExam}
+            />
+          </div>
+        )}
+
+        {/* Toggle Button */}
+        <button
+          onClick={() => setNavPanelVisible(!navPanelVisible)}
+          className="fixed top-20 z-10 bg-blue-600 text-white px-2 py-4 rounded-r-md shadow-lg hover:bg-blue-700 transition-colors"
+          style={{ left: navPanelVisible ? '320px' : '0px' }}
+        >
+          {navPanelVisible ? '◀' : '▶'}
+        </button>
+
+        {/* Main Content */}
+        <div className="flex-1 p-6">
+          <Card className="h-full bg-white shadow-lg rounded-lg">
+            <QuestionContent
+              question={questions[currentQuestionIndex]}
+              questionIndex={currentQuestionIndex}
+              userAnswer={userAnswers[currentQuestionIndex]}
+              onSaveAnswer={saveAnswer}
+              onNextQuestion={goToNextQuestion}
+            />
+          </Card>
+        </div>
       </div>
     </div>
   );

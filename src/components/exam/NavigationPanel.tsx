@@ -3,14 +3,12 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Question, CompletionStatus } from '../../types/exam';
-import { formatTime } from '../../utils/examUtils';
-import { Clock } from 'lucide-react';
+import QuestionTypeBadge from './QuestionTypeBadge';
 
 interface NavigationPanelProps {
   questions: Question[];
   currentQuestionIndex: number;
   completionStatus: CompletionStatus;
-  remainingTime: number;
   onQuestionSelect: (index: number) => void;
   onSubmitExam: () => void;
 }
@@ -19,7 +17,6 @@ const NavigationPanel: React.FC<NavigationPanelProps> = ({
   questions,
   currentQuestionIndex,
   completionStatus,
-  remainingTime,
   onQuestionSelect,
   onSubmitExam
 }) => {
@@ -36,7 +33,7 @@ const NavigationPanel: React.FC<NavigationPanelProps> = ({
         <CardTitle className="text-lg font-bold text-gray-800">Question Navigator</CardTitle>
       </CardHeader>
 
-      <CardContent className="flex-1 p-4 space-y-4">
+      <CardContent className="flex-1 p-4 space-y-4 overflow-y-auto">
         {/* Status Section */}
         <div className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
           <div className="text-center">
@@ -49,82 +46,60 @@ const NavigationPanel: React.FC<NavigationPanelProps> = ({
           </div>
         </div>
 
-        {/* Question Grid */}
-        <div className="grid grid-cols-5 gap-2">
-          {questions.map((_, index) => {
-            let bgColor = 'bg-gray-200 text-gray-700';
+        {/* Questions List */}
+        <div className="space-y-2">
+          {questions.map((question, index) => {
+            let bgColor = 'bg-gray-50 border-gray-200';
             if (index === currentQuestionIndex) {
-              bgColor = 'bg-blue-500 text-white';
+              bgColor = 'bg-blue-50 border-blue-300';
             } else if (completionStatus[index]) {
-              bgColor = 'bg-green-500 text-white';
+              bgColor = 'bg-green-50 border-green-300';
             }
 
             return (
-              <button
+              <div
                 key={index}
                 onClick={() => onQuestionSelect(index)}
-                className={`w-8 h-8 rounded text-sm font-semibold transition-colors hover:opacity-80 ${bgColor}`}
+                className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${bgColor}`}
               >
-                {index + 1}
-              </button>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold text-sm">Q{index + 1}</span>
+                  <QuestionTypeBadge 
+                    questionType={question.type}
+                    isCompleted={!!completionStatus[index]}
+                  />
+                </div>
+                <div className="text-xs text-gray-600 line-clamp-2">
+                  {question.content.substring(0, 60)}...
+                </div>
+              </div>
             );
           })}
         </div>
 
-        {/* Status Legend */}
+        {/* Question Types Summary */}
         <Card className="bg-gray-50">
           <CardContent className="p-3">
-            <div className="text-sm font-semibold text-gray-700 mb-2">Status:</div>
-            <div className="space-y-1 text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-500 rounded"></div>
-                <span className="text-gray-600">Answered</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-gray-200 rounded"></div>
-                <span className="text-gray-600">Not answered</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                <span className="text-gray-600">Current</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Difficulty Legend */}
-        <Card className="bg-gray-50">
-          <CardContent className="p-3">
-            <div className="text-sm font-semibold text-gray-700 mb-2">Question Types:</div>
+            <div className="text-sm font-semibold text-gray-700 mb-2">Summary:</div>
             <div className="space-y-1 text-xs">
               {mcqCount > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-green-600">MCQ Questions</span>
+                  <span className="text-blue-600">MCQ Questions</span>
                   <span className="font-semibold">{mcqCount}</span>
                 </div>
               )}
               {writtenCount > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-yellow-600">Written Questions</span>
+                  <span className="text-green-600">Written Questions</span>
                   <span className="font-semibold">{writtenCount}</span>
                 </div>
               )}
               {codeCount > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-red-600">Code Questions</span>
+                  <span className="text-purple-600">Code Questions</span>
                   <span className="font-semibold">{codeCount}</span>
                 </div>
               )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Timer */}
-        <Card className={`${remainingTime <= 60 ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
-          <CardContent className="p-3 text-center">
-            <Clock className="w-5 h-5 mx-auto mb-1" />
-            <div className={`text-2xl font-mono font-bold ${remainingTime <= 60 ? 'text-red-600' : 'text-green-600'}`}>
-              {formatTime(remainingTime)}
             </div>
           </CardContent>
         </Card>
