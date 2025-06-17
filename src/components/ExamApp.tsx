@@ -56,6 +56,12 @@ const ExamApp = () => {
     }
   };
 
+  const goToPreviousQuestion = () => {
+      if (currentQuestionIndex > 0) {
+        setCurrentQuestionIndex(currentQuestionIndex - 1);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Top Bar with Timer */}
@@ -97,6 +103,8 @@ const ExamApp = () => {
               userAnswer={userAnswers[currentQuestionIndex]}
               onSaveAnswer={saveAnswer}
               onNextQuestion={goToNextQuestion}
+              onPreviousQuestion={goToPreviousQuestion}
+              totalQuestions={questions.length}
             />
           </Card>
         </div>
