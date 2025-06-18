@@ -1,5 +1,5 @@
-
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { DrawingData, Stroke, Point } from '../../types/exam';
 import ShapesToolbar, { Tool } from './ShapesToolbar';
 
@@ -43,10 +43,11 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
     if (!canvas || !container) return;
 
     const rect = container.getBoundingClientRect();
+    // Set canvas to be much taller to allow for more drawing space
     canvas.width = rect.width;
-    canvas.height = 400;
+    canvas.height = Math.max(800, window.innerHeight - 200); // Minimum 800px or viewport height minus margins
     canvas.style.width = rect.width + 'px';
-    canvas.style.height = '400px';
+    canvas.style.height = canvas.height + 'px';
     
     const ctx = canvas.getContext('2d');
     if (ctx) {
@@ -240,33 +241,31 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
         canUndo={strokes.length > 0}
       />
 
-      <div 
-        ref={containerRef}
-        className="flex-1 border-2 border-gray-300 rounded-lg overflow-hidden bg-white shadow-inner relative mt-4"
-        style={{ minHeight: '400px', maxHeight: '400px' }}
-      >
-        <canvas
-          ref={canvasRef}
-          className="block cursor-crosshair touch-none"
-          onMouseDown={startDrawing}
-          onMouseMove={draw}
-          onMouseUp={stopDrawing}
-          onMouseLeave={stopDrawing}
-          onTouchStart={(e) => startDrawing(e as any)}
-          onTouchMove={(e) => draw(e as any)}
-          onTouchEnd={stopDrawing}
-          style={{ 
-            touchAction: 'none',
-            display: 'block',
-            position: 'absolute',
-            top: 0,
-            left: 0
-          }}
-        />
-      </div>
+      <ScrollArea className="flex-1 border-2 border-gray-300 rounded-lg overflow-hidden bg-white shadow-inner mt-4">
+        <div 
+          ref={containerRef}
+          className="w-full"
+        >
+          <canvas
+            ref={canvasRef}
+            className="block cursor-crosshair touch-none w-full"
+            onMouseDown={startDrawing}
+            onMouseMove={draw}
+            onMouseUp={stopDrawing}
+            onMouseLeave={stopDrawing}
+            onTouchStart={(e) => startDrawing(e as any)}
+            onTouchMove={(e) => draw(e as any)}
+            onTouchEnd={stopDrawing}
+            style={{ 
+              touchAction: 'none',
+              display: 'block'
+            }}
+          />
+        </div>
+      </ScrollArea>
 
       <div className="mt-2 text-xs text-gray-500 text-center">
-        Use the toolbar to select tools and draw • Click and drag to create shapes
+        Use the toolbar to select tools and draw • Scroll to access more drawing space
       </div>
     </div>
   );
