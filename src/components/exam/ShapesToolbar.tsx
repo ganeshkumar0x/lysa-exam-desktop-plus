@@ -2,9 +2,9 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Square, Circle, Minus, Pencil, MousePointer } from 'lucide-react';
+import { Square, Circle, Minus, Pencil, MousePointer, Eraser } from 'lucide-react';
 
-export type Tool = 'select' | 'pen' | 'line' | 'rectangle' | 'circle';
+export type Tool = 'select' | 'pen' | 'line' | 'rectangle' | 'circle' | 'eraser';
 
 interface ShapesToolbarProps {
   activeTool: Tool;
@@ -39,6 +39,7 @@ const ShapesToolbar: React.FC<ShapesToolbarProps> = ({
   const tools = [
     { id: 'select' as Tool, icon: MousePointer, label: 'Select' },
     { id: 'pen' as Tool, icon: Pencil, label: 'Pen' },
+    { id: 'eraser' as Tool, icon: Eraser, label: 'Eraser' },
     { id: 'line' as Tool, icon: Minus, label: 'Line' },
     { id: 'rectangle' as Tool, icon: Square, label: 'Rectangle' },
     { id: 'circle' as Tool, icon: Circle, label: 'Circle' },
@@ -64,26 +65,32 @@ const ShapesToolbar: React.FC<ShapesToolbarProps> = ({
 
       <Separator orientation="vertical" className="h-8" />
 
-      {/* Colors */}
-      <div className="flex flex-wrap gap-1">
-        {colors.map(color => (
-          <button
-            key={color}
-            onClick={() => onColorChange(color)}
-            className={`w-6 h-6 rounded border-2 transition-all ${
-              penColor === color ? 'border-gray-800 scale-110' : 'border-gray-300 hover:border-gray-500'
-            }`}
-            style={{ backgroundColor: color }}
-            title={`Select ${color}`}
-          />
-        ))}
-      </div>
+      {/* Colors - Hide when eraser is active */}
+      {activeTool !== 'eraser' && (
+        <>
+          <div className="flex flex-wrap gap-1">
+            {colors.map(color => (
+              <button
+                key={color}
+                onClick={() => onColorChange(color)}
+                className={`w-6 h-6 rounded border-2 transition-all ${
+                  penColor === color ? 'border-gray-800 scale-110' : 'border-gray-300 hover:border-gray-500'
+                }`}
+                style={{ backgroundColor: color }}
+                title={`Select ${color}`}
+              />
+            ))}
+          </div>
 
-      <Separator orientation="vertical" className="h-8" />
+          <Separator orientation="vertical" className="h-8" />
+        </>
+      )}
 
       {/* Brush Size */}
       <div className="flex items-center gap-2">
-        <span className="text-sm font-medium">Size:</span>
+        <span className="text-sm font-medium">
+          {activeTool === 'eraser' ? 'Eraser Size:' : 'Size:'}
+        </span>
         <input
           type="range"
           min="1"

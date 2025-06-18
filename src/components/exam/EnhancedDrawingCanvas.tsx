@@ -100,13 +100,21 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
         ctx.moveTo(start.x, start.y);
         ctx.lineTo(end.x, end.y);
         ctx.stroke();
-      } else if (stroke.type === 'pen' && stroke.points.length > 1) {
+      } else if ((stroke.type === 'pen' || stroke.type === 'eraser') && stroke.points.length > 1) {
+        if (stroke.type === 'eraser') {
+          ctx.globalCompositeOperation = 'destination-out';
+        } else {
+          ctx.globalCompositeOperation = 'source-over';
+        }
+        
         ctx.beginPath();
         ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
         for (let i = 1; i < stroke.points.length; i++) {
           ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
         }
         ctx.stroke();
+        
+        ctx.globalCompositeOperation = 'source-over';
       }
     });
   }, [strokes]);
@@ -155,10 +163,16 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
     const ctx = canvas?.getContext('2d');
     if (!ctx || !canvas) return;
 
-    if (activeTool === 'pen') {
+    if (activeTool === 'pen' || activeTool === 'eraser') {
       setCurrentStroke(prev => [...prev, pos]);
       
-      ctx.strokeStyle = penColor;
+      if (activeTool === 'eraser') {
+        ctx.globalCompositeOperation = 'destination-out';
+      } else {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = penColor;
+      }
+      
       ctx.lineWidth = penWidth;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
@@ -170,6 +184,8 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
         ctx.lineTo(pos.x, pos.y);
         ctx.stroke();
       }
+      
+      ctx.globalCompositeOperation = 'source-over';
     } else {
       redrawCanvas();
       
@@ -200,7 +216,7 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
     if (isDrawing && currentStroke.length > 0) {
       const newStroke: Stroke = {
         points: currentStroke,
-        color: penColor,
+        color: activeTool === 'eraser' ? 'transparent' : penColor,
         width: penWidth,
         type: activeTool
       };
@@ -248,7 +264,7 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
         <div ref={containerRef} className="w-full">
           <canvas
             ref={canvasRef}
-            className="block cursor-crosshair touch-none w-full"
+            className={`block touch-none w-full ${activeTool === 'eraser' ? 'cursor-crosshair' : 'cursor-crosshair'}`}
             onMouseDown={startDrawing}
             onMouseMove={draw}
             onMouseUp={stopDrawing}
