@@ -33,7 +33,6 @@ const WrittenQuestion: React.FC<WrittenQuestionProps> = ({
     setActiveTab(userAnswer?.mode || 'text');
   }, [questionIndex, userAnswer]);
 
-  // Auto-save functionality
   useEffect(() => {
     const answer = {
       text: textAnswer,
@@ -54,34 +53,36 @@ const WrittenQuestion: React.FC<WrittenQuestionProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full p-6">
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">
+    <div className="h-full flex flex-col">
+      {/* Question Header - Compact */}
+      <div className="flex-shrink-0 p-4 border-b">
+        <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200">
           Question {questionIndex + 1}: {question.content}
         </h2>
       </div>
 
-      <div className="flex-1 flex flex-col min-h-0">
+      {/* Tabs and Content - Fill Remaining Space */}
+      <div className="flex-1 flex flex-col p-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsList className="grid w-full grid-cols-2 mb-4 flex-shrink-0">
             <TabsTrigger value="text">Type Answer</TabsTrigger>
             <TabsTrigger value="draw">Draw Answer</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="text" className="flex-1 flex flex-col min-h-0">
+          <TabsContent value="text" className="flex-1 flex flex-col">
             <ScrollArea className="flex-1 border-2 border-gray-300 rounded-lg">
               <Textarea
                 value={textAnswer}
                 onChange={(e) => setTextAnswer(e.target.value)}
                 placeholder="Type your answer here..."
-                className="min-h-[600px] p-4 border-0 resize-none focus:ring-0 focus:outline-none"
-                style={{ minHeight: 'calc(100vh - 300px)' }}
+                className="min-h-full p-4 border-0 resize-none focus:ring-0 focus:outline-none"
+                style={{ height: 'calc(100vh - 250px)' }}
               />
             </ScrollArea>
           </TabsContent>
 
-          <TabsContent value="draw" className="flex-1 flex flex-col min-h-0">
-            <div className="flex-1 min-h-0">
+          <TabsContent value="draw" className="flex-1 flex flex-col">
+            <div className="flex-1">
               <EnhancedDrawingCanvas
                 onDataChange={setDrawingData}
                 initialData={drawingData}
@@ -90,7 +91,8 @@ const WrittenQuestion: React.FC<WrittenQuestionProps> = ({
           </TabsContent>
         </Tabs>
 
-        <div className="mt-6 flex-shrink-0">
+        {/* Save Button - Fixed at Bottom */}
+        <div className="flex-shrink-0 mt-4">
           <Button
             onClick={handleSave}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"

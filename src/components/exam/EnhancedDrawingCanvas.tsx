@@ -43,9 +43,8 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
     if (!canvas || !container) return;
 
     const rect = container.getBoundingClientRect();
-    // Set canvas to be much taller to allow for more drawing space
     canvas.width = rect.width;
-    canvas.height = Math.max(800, window.innerHeight - 200); // Minimum 800px or viewport height minus margins
+    canvas.height = Math.max(1200, window.innerHeight - 200); // Increased height for more drawing space
     canvas.style.width = rect.width + 'px';
     canvas.style.height = canvas.height + 'px';
     
@@ -55,7 +54,6 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    // Create temporary canvas for shape preview
     const temp = document.createElement('canvas');
     temp.width = canvas.width;
     temp.height = canvas.height;
@@ -170,7 +168,6 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
         ctx.stroke();
       }
     } else {
-      // For shapes, redraw everything and show preview
       redrawCanvas();
       
       ctx.strokeStyle = penColor;
@@ -241,11 +238,11 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
         canUndo={strokes.length > 0}
       />
 
-      <ScrollArea className="flex-1 border-2 border-gray-300 rounded-lg overflow-hidden bg-white shadow-inner mt-4">
-        <div 
-          ref={containerRef}
-          className="w-full"
-        >
+      <ScrollArea 
+        className="flex-1 border-2 border-gray-300 rounded-lg overflow-auto bg-white shadow-inner mt-2"
+        style={{ height: 'calc(100vh - 300px)' }}
+      >
+        <div ref={containerRef} className="w-full">
           <canvas
             ref={canvasRef}
             className="block cursor-crosshair touch-none w-full"
