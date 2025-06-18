@@ -52,6 +52,8 @@ const WrittenQuestion: React.FC<WrittenQuestionProps> = ({
     onNextQuestion();
   };
 
+  const contentHeight = 'calc(100vh - 250px)';
+
   return (
     <div className="h-full flex flex-col">
       {/* Question Header - Compact */}
@@ -70,22 +72,29 @@ const WrittenQuestion: React.FC<WrittenQuestionProps> = ({
           </TabsList>
 
           <TabsContent value="text" className="flex-1 flex flex-col">
-            <ScrollArea className="flex-1 border-2 border-gray-300 rounded-lg">
+            <ScrollArea 
+              className="flex-1 border-2 border-gray-300 rounded-lg"
+              style={{ height: contentHeight }}
+            >
               <Textarea
                 value={textAnswer}
                 onChange={(e) => setTextAnswer(e.target.value)}
                 placeholder="Type your answer here..."
                 className="min-h-full p-4 border-0 resize-none focus:ring-0 focus:outline-none"
-                style={{ height: 'calc(100vh - 250px)' }}
+                style={{ minHeight: '800px' }}
               />
             </ScrollArea>
           </TabsContent>
 
           <TabsContent value="draw" className="flex-1 flex flex-col">
-            <div className="flex-1">
+            <div 
+              className="flex-1"
+              style={{ height: contentHeight }}
+            >
               <EnhancedDrawingCanvas
                 onDataChange={setDrawingData}
                 initialData={drawingData}
+                containerHeight={contentHeight}
               />
             </div>
           </TabsContent>

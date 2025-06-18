@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { DrawingData, Stroke, Point } from '../../types/exam';
@@ -6,11 +7,13 @@ import ShapesToolbar, { Tool } from './ShapesToolbar';
 interface EnhancedDrawingCanvasProps {
   onDataChange: (data: DrawingData) => void;
   initialData?: DrawingData;
+  containerHeight?: string;
 }
 
 const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
   onDataChange,
-  initialData
+  initialData,
+  containerHeight = 'calc(100vh - 300px)'
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -44,7 +47,7 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
 
     const rect = container.getBoundingClientRect();
     canvas.width = rect.width;
-    canvas.height = Math.max(1200, window.innerHeight - 200); // Increased height for more drawing space
+    canvas.height = 800; // Fixed height to match text area minimum height
     canvas.style.width = rect.width + 'px';
     canvas.style.height = canvas.height + 'px';
     
@@ -240,7 +243,7 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
 
       <ScrollArea 
         className="flex-1 border-2 border-gray-300 rounded-lg overflow-auto bg-white shadow-inner mt-2"
-        style={{ height: 'calc(100vh - 300px)' }}
+        style={{ height: containerHeight }}
       >
         <div ref={containerRef} className="w-full">
           <canvas
