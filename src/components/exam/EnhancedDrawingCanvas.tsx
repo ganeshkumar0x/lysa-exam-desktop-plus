@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { DrawingData, Stroke, Point } from '../../types/exam';
@@ -24,7 +23,6 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
   const [currentStroke, setCurrentStroke] = useState<Point[]>([]);
   const [strokes, setStrokes] = useState<Stroke[]>(initialData?.strokes || []);
   const [startPoint, setStartPoint] = useState<Point | null>(null);
-  const [tempCanvas, setTempCanvas] = useState<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     initializeCanvas();
@@ -47,20 +45,15 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
 
     const rect = container.getBoundingClientRect();
     canvas.width = rect.width;
-    canvas.height = 800; // Fixed height to match text area minimum height
+    canvas.height = 800;
     canvas.style.width = rect.width + 'px';
     canvas.style.height = canvas.height + 'px';
-    
+
     const ctx = canvas.getContext('2d');
     if (ctx) {
       ctx.fillStyle = 'white';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
-
-    const temp = document.createElement('canvas');
-    temp.width = canvas.width;
-    temp.height = canvas.height;
-    setTempCanvas(temp);
   }, []);
 
   const redrawCanvas = useCallback(() => {
@@ -77,45 +70,42 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
     strokes.forEach(stroke => {
       if (stroke.points.length === 0) return;
 
-      ctx.strokeStyle = stroke.color;
       ctx.lineWidth = stroke.width;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
 
+      if (stroke.type === 'eraser') {
+        ctx.globalCompositeOperation = 'destination-out';
+      } else {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = stroke.color;
+      }
+
       if (stroke.type === 'rectangle' && stroke.points.length >= 2) {
-        const start = stroke.points[0];
-        const end = stroke.points[stroke.points.length - 1];
+        const [start, end] = [stroke.points[0], stroke.points[1]];
         ctx.strokeRect(start.x, start.y, end.x - start.x, end.y - start.y);
       } else if (stroke.type === 'circle' && stroke.points.length >= 2) {
-        const start = stroke.points[0];
-        const end = stroke.points[stroke.points.length - 1];
+        const [start, end] = [stroke.points[0], stroke.points[1]];
         const radius = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
         ctx.beginPath();
         ctx.arc(start.x, start.y, radius, 0, 2 * Math.PI);
         ctx.stroke();
       } else if (stroke.type === 'line' && stroke.points.length >= 2) {
-        const start = stroke.points[0];
-        const end = stroke.points[stroke.points.length - 1];
+        const [start, end] = [stroke.points[0], stroke.points[1]];
         ctx.beginPath();
         ctx.moveTo(start.x, start.y);
         ctx.lineTo(end.x, end.y);
         ctx.stroke();
-      } else if ((stroke.type === 'pen' || stroke.type === 'eraser') && stroke.points.length > 1) {
-        if (stroke.type === 'eraser') {
-          ctx.globalCompositeOperation = 'destination-out';
-        } else {
-          ctx.globalCompositeOperation = 'source-over';
-        }
-        
+      } else {
         ctx.beginPath();
         ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
         for (let i = 1; i < stroke.points.length; i++) {
           ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
         }
         ctx.stroke();
-        
-        ctx.globalCompositeOperation = 'source-over';
       }
+
+      ctx.globalCompositeOperation = 'source-over'; // Reset after stroke
     });
   }, [strokes]);
 
@@ -134,7 +124,7 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
       clientX = e.clientX;
       clientY = e.clientY;
     }
-    
+
     return {
       x: clientX - rect.left,
       y: clientY - rect.top
@@ -147,7 +137,7 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
     setIsDrawing(true);
     setStartPoint(pos);
 
-    if (activeTool === 'pen') {
+    if (activeTool === 'pen' || activeTool === 'eraser') {
       setCurrentStroke([pos]);
     } else {
       setCurrentStroke([pos, pos]);
@@ -165,34 +155,30 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
 
     if (activeTool === 'pen' || activeTool === 'eraser') {
       setCurrentStroke(prev => [...prev, pos]);
-      
+
+      ctx.lineWidth = penWidth;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
       if (activeTool === 'eraser') {
         ctx.globalCompositeOperation = 'destination-out';
       } else {
         ctx.globalCompositeOperation = 'source-over';
         ctx.strokeStyle = penColor;
       }
-      
-      ctx.lineWidth = penWidth;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
 
-      if (currentStroke.length > 0) {
-        const lastPoint = currentStroke[currentStroke.length - 1];
-        ctx.beginPath();
-        ctx.moveTo(lastPoint.x, lastPoint.y);
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-      }
-      
+      const lastPoint = currentStroke[currentStroke.length - 1] || pos;
+      ctx.beginPath();
+      ctx.moveTo(lastPoint.x, lastPoint.y);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+
       ctx.globalCompositeOperation = 'source-over';
     } else {
       redrawCanvas();
-      
+
       ctx.strokeStyle = penColor;
       ctx.lineWidth = penWidth;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
 
       if (activeTool === 'rectangle') {
         ctx.strokeRect(startPoint.x, startPoint.y, pos.x - startPoint.x, pos.y - startPoint.y);
@@ -216,7 +202,7 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
     if (isDrawing && currentStroke.length > 0) {
       const newStroke: Stroke = {
         points: currentStroke,
-        color: activeTool === 'eraser' ? 'transparent' : penColor,
+        color: penColor,
         width: penWidth,
         type: activeTool
       };
@@ -257,14 +243,14 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
         canUndo={strokes.length > 0}
       />
 
-      <ScrollArea 
+      <ScrollArea
         className="flex-1 border-2 border-gray-300 rounded-lg overflow-auto bg-white shadow-inner mt-2"
         style={{ height: containerHeight }}
       >
         <div ref={containerRef} className="w-full">
           <canvas
             ref={canvasRef}
-            className={`block touch-none w-full ${activeTool === 'eraser' ? 'cursor-crosshair' : 'cursor-crosshair'}`}
+            className={`block touch-none w-full ${activeTool === 'eraser' ? 'cursor-cell' : 'cursor-crosshair'}`}
             onMouseDown={startDrawing}
             onMouseMove={draw}
             onMouseUp={stopDrawing}
@@ -272,7 +258,7 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
             onTouchStart={(e) => startDrawing(e as any)}
             onTouchMove={(e) => draw(e as any)}
             onTouchEnd={stopDrawing}
-            style={{ 
+            style={{
               touchAction: 'none',
               display: 'block'
             }}
@@ -288,3 +274,4 @@ const EnhancedDrawingCanvas: React.FC<EnhancedDrawingCanvasProps> = ({
 };
 
 export default EnhancedDrawingCanvas;
+
